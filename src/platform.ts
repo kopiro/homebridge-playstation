@@ -8,7 +8,7 @@ import {
   Characteristic,
 } from "homebridge";
 
-import { PLATFORM_NAME, PLUGIN_NAME } from "./settings";
+import { PLUGIN_NAME } from "./settings";
 import { PlaystationAccessory } from "./platformAccessory";
 import { IDiscoveredDevice } from "playactor/dist/discovery/model";
 import { Device } from "playactor/dist/device";
