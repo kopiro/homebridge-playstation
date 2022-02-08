@@ -10,7 +10,9 @@ import { PlaystationPlatform } from "./platform";
 export class PlaystationAccessory {
   private service: Service;
   private lockUpdate = false;
-  private lockSetOn = true;
+  private lockSetOn = false;
+
+  private readonly kLockTimeout = 10000;
 
   constructor(
     private readonly platform: PlaystationPlatform,
@@ -84,7 +86,10 @@ export class PlaystationAccessory {
     this.lockSetOn = true;
 
     // Remove the lock after 10s
-    const lockSetOnTimeout = setTimeout(() => (this.lockSetOn = false), 10000);
+    const lockSetOnTimeout = setTimeout(() => {
+      this.platform.log.debug("Unlocking setOn due to timeout");
+      this.lockSetOn = false;
+    }, this.kLockTimeout);
 
     const device = this.getDevice();
     device
