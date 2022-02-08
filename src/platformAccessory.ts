@@ -9,10 +9,11 @@ import { PlaystationPlatform } from "./platform";
 
 export class PlaystationAccessory {
   private service: Service;
-  private lockUpdate = false;
+  private lockRefresh = false;
   private lockSetOn = false;
 
-  private readonly kLockTimeout = 10000;
+  private lockTimeout: NodeJS.Timeout | undefined;
+  private readonly kLockTimeout = 15000;
 
   constructor(
     private readonly platform: PlaystationPlatform,
@@ -40,7 +41,7 @@ export class PlaystationAccessory {
       .onGet(this.getOn.bind(this));
 
     setInterval(
-      this.updateCharacteristics.bind(this),
+      this.refreshDeviceInformations.bind(this),
       this.platform.config.pollInterval || this.platform.kDefaultPollInterval
     );
   }
@@ -50,27 +51,47 @@ export class PlaystationAccessory {
     return Device.withId(deviceInformation.id);
   }
 
-  private async updateDeviceInformations() {
-    const device = this.getDevice();
-    this.accessory.context.deviceInformation = await device.discover();
+  private updateCharacteristics() {
+    this.service
+      .getCharacteristic(this.platform.Characteristic.On)
+      .updateValue(
+        this.accessory.context.deviceInformation.status === DeviceStatus.AWAKE
+      );
   }
 
-  async updateCharacteristics(forceLock = false) {
-    if (this.lockUpdate && !forceLock) return;
-    this.lockUpdate = true;
+  async refreshDeviceInformations() {
+    if (this.lockRefresh) {
+      this.platform.log.debug("Refresh is locked");
+      return;
+    }
+
+    this.lockRefresh = true;
 
     try {
-      await this.updateDeviceInformations();
-
-      this.service
-        .getCharacteristic(this.platform.Characteristic.On)
-        .updateValue(
-          this.accessory.context.deviceInformation.status === DeviceStatus.AWAKE
-        );
+      const device = this.getDevice();
+      this.accessory.context.deviceInformation = await device.discover();
+      this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
     } finally {
-      this.lockUpdate = false;
+      this.lockRefresh = false;
+    }
+  }
+
+  private addLocks() {
+    this.lockSetOn = true;
+    this.lockRefresh = true;
+    this.lockTimeout = setTimeout(() => {
+      this.platform.log.debug("Removing locks due to timeout");
+      this.removeLocks();
+    }, this.kLockTimeout);
+  }
+
+  private removeLocks() {
+    this.lockSetOn = false;
+    this.lockRefresh = false;
+    if (this.lockTimeout) {
+      clearTimeout(this.lockTimeout);
     }
   }
 
@@ -83,20 +104,12 @@ export class PlaystationAccessory {
       );
     }
 
-    this.lockSetOn = true;
-
-    // Remove the lock after 10s
-    const lockSetOnTimeout = setTimeout(() => {
-      this.platform.log.debug("Unlocking setOn due to timeout");
-      this.lockSetOn = false;
-    }, this.kLockTimeout);
+    this.addLocks();
 
     const device = this.getDevice();
     device
       .openConnection()
       .then(async (connection) => {
-        this.lockUpdate = true;
-
         this.platform.log.debug("Obtained connection");
 
         if (value) {
@@ -110,16 +123,18 @@ export class PlaystationAccessory {
         this.platform.log.debug("Closing connection");
         await connection.close();
 
-        this.platform.log.debug("Connection closed");
+        this.platform.log.debug("Connection closed, updating informations");
 
-        this.updateCharacteristics(true);
+        this.accessory.context.deviceInformation.status = value
+          ? DeviceStatus.AWAKE
+          : DeviceStatus.STANDBY;
+        this.updateCharacteristics();
       })
       .catch((err) => {
         this.platform.log.error((err as Error).message);
       })
       .finally(() => {
-        clearTimeout(lockSetOnTimeout);
-        this.lockSetOn = false;
+        this.removeLocks();
       });
   }
 
