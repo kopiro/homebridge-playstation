@@ -74,14 +74,17 @@ export class PlaystationAccessory {
 
   setOn(value: CharacteristicValue) {
     this.platform.log.debug("Set Characteristic On ->", value);
-    if (!this.lockSetOn) {
+    if (this.lockSetOn) {
       this.platform.log.info("setOn is temporarly disabled");
       throw new this.platform.api.hap.HapStatusError(
         this.platform.api.hap.HAPStatus.RESOURCE_BUSY
       );
     }
 
-    this.lockSetOn = false;
+    this.lockSetOn = true;
+
+    // Remove the lock after 10s
+    const lockSetOnTimeout = setTimeout(() => (this.lockSetOn = false), 10000);
 
     const device = this.getDevice();
     device
@@ -104,13 +107,14 @@ export class PlaystationAccessory {
 
         this.platform.log.debug("Connection closed");
 
-        await this.updateCharacteristics(true);
+        this.updateCharacteristics(true);
       })
       .catch((err) => {
         this.platform.log.error((err as Error).message);
       })
       .finally(() => {
-        this.lockSetOn = true;
+        clearTimeout(lockSetOnTimeout);
+        this.lockSetOn = false;
       });
   }
 
