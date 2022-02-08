@@ -1,2 +1,2 @@
-#!/usr/bin/env node
+#!/bin/bash
 playactor login --no-open-urls
