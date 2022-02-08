@@ -16,6 +16,11 @@
   "bugs": {
     "url": "https://github.com/kopiro/homebridge-playstation/issues"
   },
+  "author": {
+    "name": "Flavio De Stefano",
+    "email": "destefano.flavio@gmail.com",
+    "url": "https://www.kopiro.me"
+  },
   "funding": {
     "type": "paypal",
     "url": "https://www.paypal.me/kopiro"
