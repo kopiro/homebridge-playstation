@@ -29,14 +29,16 @@ export class PlaystationAccessory {
       .setCharacteristic(Characteristic.Manufacturer, "Sony")
       .setCharacteristic(Characteristic.Model, deviceInformation.type)
       .setCharacteristic(Characteristic.SerialNumber, deviceInformation.id);
+    this.accessory.category =
+      this.platform.api.hap.Accessory.Categories.TV_SET_TOP_BOX;
 
     this.service =
-      this.accessory.getService(Service.Switch) ||
-      this.accessory.addService(Service.Switch);
+      this.accessory.getService(Service.Television) ||
+      this.accessory.addService(Service.Television);
     this.service.setCharacteristic(Characteristic.Name, deviceInformation.name);
 
     this.service
-      .getCharacteristic(Characteristic.On)
+      .getCharacteristic(Characteristic.Active)
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
 
