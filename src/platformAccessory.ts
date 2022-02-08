@@ -51,7 +51,7 @@ export class PlaystationAccessory {
 
     this.service
       .getCharacteristic(Characteristic.RemoteKey)
-      .on("set", (newValue: CharacteristicValue) => {
+      .onSet((newValue: CharacteristicValue) => {
         this.platform.log.debug(
           "Set RemoteKey is not implemented yet",
           newValue
@@ -62,15 +62,11 @@ export class PlaystationAccessory {
 
     this.service
       .getCharacteristic(Characteristic.ActiveIdentifier)
-      .on("set", (newValue: CharacteristicValue) => {
+      .onSet((newValue: CharacteristicValue) => {
         this.platform.log.debug(
           "Set ActiveIdentifier is not implemented yet",
           newValue
         );
-      })
-      .on("get", () => {
-        this.platform.log.debug("Get ActiveIdentifier is not implemented yet");
-        return 1;
       });
 
     setInterval(

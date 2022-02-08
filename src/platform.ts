@@ -124,9 +124,12 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
 
       new PlaystationAccessory(this, accessory);
 
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
-        accessory,
-      ]);
+      /**
+       * Publish as external accessory
+       * Only one TV can exist per bridge, to bypass this limitation, you should
+       * publish your TV as an external accessory.
+       */
+      this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
     }
   }
 }
