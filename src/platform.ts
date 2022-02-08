@@ -7,11 +7,11 @@ import {
   Service,
   Characteristic,
 } from "homebridge";
-import { DeviceOptions } from "playactor/dist/cli/options";
 
 import { PLATFORM_NAME, PLUGIN_NAME } from "./settings";
 import { PlaystationAccessory } from "./platformAccessory";
 import { IDiscoveredDevice } from "playactor/dist/discovery/model";
+import { Device } from "playactor/dist/device";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
@@ -65,12 +65,8 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
   async discoverDevices() {
-    const opt = new DeviceOptions();
-    // Make sure that we write the URL in the console
-    opt.dontAutoOpenUrls = true;
-
-    const foundDevice = await opt.findDevice();
-    const deviceInformation = await foundDevice.discover();
+    const device = await Device.any();
+    const deviceInformation = await device.discover();
 
     this.log.debug("Discovered device:", deviceInformation);
 
@@ -107,7 +103,7 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
       // this is imported from `platformAccessory.ts`
       new PlaystationAccessory(this, existingAccessory);
     } else {
-      const connection = await foundDevice.openConnection();
+      const connection = await device.openConnection();
       if (!connection) {
         throw new Error(
           "Something went wrong while configuring the device. Please try again."
