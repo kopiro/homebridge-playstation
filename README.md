@@ -36,7 +36,7 @@ Open the authorization link provided, authenticate it using your PSN account, an
 
 Once you've done that, go to Settings > System > Remote Play > Link Device and provide the PIN code.
 
-Now just restart the HomeBridge instance, and your PlayStation should be visible in the Home app.
+Now just restart the HomeBridge instance, and add your fresh new PlayStation as extra accessory using "Add Accessory" in the Home app.
 
 ## Parameters
 
