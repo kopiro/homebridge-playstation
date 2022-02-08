@@ -1,2 +1,2 @@
 #!/bin/bash
-playactor login --no-open-urls
+./node_modules/.bin/playactor login --no-open-urls
