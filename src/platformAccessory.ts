@@ -21,21 +21,27 @@ export class PlaystationAccessory {
       deviceInformation: IDiscoveredDevice;
     }>
   ) {
-    const { Service, Characteristic } = this.platform;
+    const { Service, Characteristic, api } = this.platform;
     const { deviceInformation } = accessory.context;
+
+    accessory.category = api.hap.Categories.TV_SET_TOP_BOX;
 
     this.accessory
       .getService(Service.AccessoryInformation)!
       .setCharacteristic(Characteristic.Manufacturer, "Sony")
       .setCharacteristic(Characteristic.Model, deviceInformation.type)
       .setCharacteristic(Characteristic.SerialNumber, deviceInformation.id);
-    this.accessory.category =
-      this.platform.api.hap.Accessory.Categories.TV_SET_TOP_BOX;
 
     this.service =
       this.accessory.getService(Service.Television) ||
       this.accessory.addService(Service.Television);
-    this.service.setCharacteristic(Characteristic.Name, deviceInformation.name);
+    this.service
+      .setCharacteristic(Characteristic.Name, deviceInformation.name)
+      .setCharacteristic(Characteristic.ConfiguredName, deviceInformation.name)
+      .setCharacteristic(
+        this.platform.Characteristic.SleepDiscoveryMode,
+        this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
+      );
 
     this.service
       .getCharacteristic(Characteristic.Active)
