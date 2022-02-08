@@ -31,7 +31,7 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
     public readonly config: PlaystationPlatformConfig,
     public readonly api: API
   ) {
-    this.log.debug("Finished initializing platform:", this.config.name);
+    this.log.debug("Finished initializing platform:");
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
@@ -39,7 +39,6 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
     // to start discovery of new accessories.
     this.api.on("didFinishLaunching", async () => {
       this.log.debug("Executed didFinishLaunching callback");
-      // run the method to discover / register your devices as accessories
       try {
         await this.discoverDevices();
       } catch (err) {
@@ -103,10 +102,12 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
       // this is imported from `platformAccessory.ts`
       new PlaystationAccessory(this, existingAccessory);
     } else {
+      this.log.debug("Opening connection to Playstation...");
+
       const connection = await device.openConnection();
       if (!connection) {
         throw new Error(
-          "The device doesn't look configured, please run 'npm run homebridge-playstation-login' to configure it, then restart Homebridge."
+          "The device doesn't look configured, please run 'homebridge-playstation-login' to configure it, then restart Homebridge."
         );
       }
       await connection.close();
