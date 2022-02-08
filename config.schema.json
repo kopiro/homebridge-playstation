@@ -5,11 +5,11 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "default": "Example Dynamic Platform"
+      "pollInterval": {
+        "title": "Poll Interval",
+        "type": "integer",
+        "default": 5000,
+        "description": "Determine how often should informations be fetched (in milliseconds)"
       }
     }
   }
