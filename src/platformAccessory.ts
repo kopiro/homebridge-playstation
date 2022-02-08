@@ -24,8 +24,6 @@ export class PlaystationAccessory {
     const { Service, Characteristic, api } = this.platform;
     const { deviceInformation } = accessory.context;
 
-    accessory.category = api.hap.Categories.TV_SET_TOP_BOX;
-
     this.accessory
       .getService(Service.AccessoryInformation)!
       .setCharacteristic(Characteristic.Manufacturer, "Sony")
@@ -35,8 +33,9 @@ export class PlaystationAccessory {
     this.service =
       this.accessory.getService(Service.Television) ||
       this.accessory.addService(Service.Television);
+    this.accessory.category = api.hap.Categories.TV_SET_TOP_BOX;
+
     this.service
-      .setCharacteristic(Characteristic.Name, deviceInformation.name)
       .setCharacteristic(Characteristic.ConfiguredName, deviceInformation.name)
       .setCharacteristic(
         this.platform.Characteristic.SleepDiscoveryMode,
@@ -47,6 +46,32 @@ export class PlaystationAccessory {
       .getCharacteristic(Characteristic.Active)
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
+
+    // These characteristics are required but not implemented yet
+
+    this.service
+      .getCharacteristic(Characteristic.RemoteKey)
+      .on("set", (newValue: CharacteristicValue) => {
+        this.platform.log.debug(
+          "Set RemoteKey is not implemented yet",
+          newValue
+        );
+      });
+
+    this.service.setCharacteristic(Characteristic.ActiveIdentifier, 1);
+
+    this.service
+      .getCharacteristic(Characteristic.ActiveIdentifier)
+      .on("set", (newValue: CharacteristicValue) => {
+        this.platform.log.debug(
+          "Set ActiveIdentifier is not implemented yet",
+          newValue
+        );
+      })
+      .on("get", () => {
+        this.platform.log.debug("Get ActiveIdentifier is not implemented yet");
+        return 1;
+      });
 
     setInterval(
       this.refreshDeviceInformations.bind(this),
@@ -61,7 +86,7 @@ export class PlaystationAccessory {
 
   private updateCharacteristics() {
     this.service
-      .getCharacteristic(this.platform.Characteristic.On)
+      .getCharacteristic(this.platform.Characteristic.Active)
       .updateValue(
         this.accessory.context.deviceInformation.status === DeviceStatus.AWAKE
       );
