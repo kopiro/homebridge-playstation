@@ -7,13 +7,11 @@ import {
   Service,
   Characteristic,
 } from "homebridge";
-import { Device } from "playactor/dist/device";
 import { DeviceOptions } from "playactor/dist/cli/options";
 
 import { PLATFORM_NAME, PLUGIN_NAME } from "./settings";
 import { PlaystationAccessory } from "./platformAccessory";
 import { IDiscoveredDevice } from "playactor/dist/discovery/model";
-import { IResolvedDevice } from "playactor/dist/device/model";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
