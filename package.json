@@ -11,6 +11,7 @@
   "files": [
     "dist",
     "LICENSE",
+    "login.sh",
     "config.schema.json"
   ],
   "bugs": {
@@ -37,7 +38,7 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "bin": {
-    "homebridge-playstation-login": "playactor login --no-open-urls"
+    "homebridge-playstation-login": "./login.sh"
   },
   "keywords": [
     "homebridge-plugin"
