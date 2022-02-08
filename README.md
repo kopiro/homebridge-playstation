@@ -10,6 +10,8 @@
 
 _Hey Siri, turn on Playstation_ finally possible!
 
+![IMG_2114](https://user-images.githubusercontent.com/839700/153052274-c406ef19-e9f4-41b0-bb66-78134069021d.jpg)
+
 This integration exposes a Switch service that can be used to switch on/off your PS4/PS5, and determine its current state.
 
 Most of the work is done by the amazing [playactor](https://github.com/dhleong/playactor) library, which this project depends on.
