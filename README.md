@@ -26,7 +26,7 @@ npm -g install homebridge-playstation
 
 Before doing anything, switch on your PlayStation.
 
-Now you need to configure **PlayActor** and follow the authentication process provided by the library; to do so, open the Homebridge Terminal and run:
+Now you need to configure **PlayActor** and follow the authentication process provided by the library; to do so, open the terminal in the HomeBridge UI (make sure you don't run these commands as `root`, you need to run them as `homebridge` user!) and run:
 
 ```bash
 homebridge-playstation-login
@@ -36,7 +36,7 @@ Open the authorization link provided, authenticate it using your PSN account, an
 
 Once you've done that, go to Settings > System > Remote Play > Link Device and provide the PIN code.
 
-Cool, now just restart the HomeBridge instance, and your PlayStation should be visible in the Home app.
+Now just restart the HomeBridge instance, and your PlayStation should be visible in the Home app.
 
 ## Parameters
 
