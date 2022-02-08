@@ -4,14 +4,17 @@ const opt = new DeviceOptions();
 opt.dontAutoOpenUrls = true;
 opt
   .findDevice()
-  .then(async (device) => {
-    try {
-      await device.openConnection();
-      console.log("Restart HomeBridge now!");
-    } catch (err) {
-      // noop, as the CLI in playactor manages errors
-    }
+  .then((device) => {
+    device
+      .openConnection()
+      .then((conn) => {
+        conn.close();
+        console.log("Connection succeded, restart HomeBridge now!");
+      })
+      .catch((err) => {
+        console.error(err.message);
+      });
   })
-  .catch(() => {
-    // noop, as the CLI in playactor manages errors
+  .catch((err) => {
+    console.error(err.message);
   });
