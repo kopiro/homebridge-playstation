@@ -24,13 +24,17 @@ npm -g install homebridge-playstation
 
 ## Configuration
 
-It is highly recommended that you use either Homebridge Config UI X or the HOOBS UI to install and configure this plugin.
+Before doing anything, you need to configure _playactor_ and follow the authentication process provided by the library; therefore open the Homebridge Terminal and run:
 
-**The first time that you install the plugin you need to follow the authentication process provided by PlayActor library; therefore open the Homebridge logs and follow the instructions.**
+```bash
+npm run homebridge-playstation-login
+```
 
-Specifically, you'll need to open the authorization link in your browser, authenticate it using your PSN account, and copy the URL in the terminal.
+You now need to open the authorization link, authenticate it using your PSN account, and copy the URL when the page shows "redirect" in the terminal.
 
-Once you've done that, you need to go to "Settings" > "System" > "Remote Play" and provide the PIN code to PlayActor.
+Once you've done that, you need to go to "Settings" > "System" > "Remote Play" and provide the PIN code.
+
+Cool, now just restart the HomeBridge instance!
 
 ## Parameters
 

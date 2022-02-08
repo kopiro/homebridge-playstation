@@ -36,6 +36,9 @@
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run lint && npm run build"
   },
+  "bin": {
+    "homebridge-playstation-login": "playactor login --no-open-urls"
+  },
   "keywords": [
     "homebridge-plugin"
   ],

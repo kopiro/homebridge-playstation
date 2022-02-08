@@ -106,7 +106,7 @@ export class PlaystationPlatform implements DynamicPlatformPlugin {
       const connection = await device.openConnection();
       if (!connection) {
         throw new Error(
-          "Something went wrong while configuring the device. Please try again."
+          "The device doesn't look configured, please run 'npm run homebridge-playstation-login' to configure it, then restart Homebridge."
         );
       }
       await connection.close();
