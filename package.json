@@ -38,7 +38,7 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "bin": {
-    "homebridge-playstation-login": "./login.sh"
+    "homebridge-playstation-login": "./dist/cli.js"
   },
   "keywords": [
     "homebridge-plugin"
