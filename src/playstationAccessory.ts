@@ -27,7 +27,7 @@ export class PlaystationAccessory {
   private lockSetOn = false;
 
   private lockTimeout: NodeJS.Timeout | undefined;
-  private readonly kLockTimeout = 15000;
+  private readonly kLockTimeout = 20_000;
 
   constructor(
     private readonly platform: PlaystationPlatform,
