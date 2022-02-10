@@ -33,7 +33,7 @@ export class PlaystationAccessory {
     private readonly platform: PlaystationPlatform,
     private deviceInformation: IDiscoveredDevice
   ) {
-    const uuid = this.api.hap.uuid.generate(deviceInformation.id + "1");
+    const uuid = this.api.hap.uuid.generate(deviceInformation.id);
 
     this.accessory = new this.api.platformAccessory<{
       deviceInformation: IDiscoveredDevice;
