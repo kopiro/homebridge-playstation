@@ -144,8 +144,8 @@ export class PlaystationAccessory {
 
       this.platform.log.debug("Connecting to device...");
 
-      const device = await this.getDevice();
-      const connection = await device.openConnection();
+      const device = this.getDevice();
+      const connection = await this.getDevice().openConnection();
 
       this.platform.log.debug("Obtained connection");
 
@@ -164,10 +164,7 @@ export class PlaystationAccessory {
 
       // If connection has been closed, most of the time the information has been correctly reflected in the system
       // We therefore can assume that the device is now in the desired state
-      this.deviceInformation.status = value
-        ? DeviceStatus.AWAKE
-        : DeviceStatus.STANDBY;
-      this.updateCharacteristics();
+      return value;
     } catch (err) {
       this.platform.log.error((err as Error).message);
       throw new this.platform.api.hap.HapStatusError(
