@@ -1,4 +1,10 @@
-import { Service, PlatformAccessory, CharacteristicValue } from "homebridge";
+import {
+  Service,
+  API,
+  Characteristic,
+  PlatformAccessory,
+  CharacteristicValue,
+} from "homebridge";
 import { Device } from "playactor/dist/device";
 import {
   DeviceStatus,
@@ -10,7 +16,12 @@ import { PLUGIN_NAME } from "./settings";
 
 export class PlaystationAccessory {
   private readonly accessory: PlatformAccessory;
-  private readonly service: Service;
+  private readonly tvService: Service;
+
+  private readonly api: API = this.platform.api;
+  private readonly Service: typeof Service = this.platform.Service;
+  private readonly Characteristic: typeof Characteristic =
+    this.platform.Characteristic;
 
   private lockRefresh = false;
   private lockSetOn = false;
@@ -22,41 +33,42 @@ export class PlaystationAccessory {
     private readonly platform: PlaystationPlatform,
     private deviceInformation: IDiscoveredDevice
   ) {
-    const { Service, Characteristic, api } = platform;
+    const uuid = this.api.hap.uuid.generate(deviceInformation.id);
 
-    const uuid = api.hap.uuid.generate(deviceInformation.id);
-
-    this.accessory = new api.platformAccessory<{
+    this.accessory = new this.api.platformAccessory<{
       deviceInformation: IDiscoveredDevice;
     }>(deviceInformation.name, uuid);
+    this.accessory.category = this.api.hap.Categories.TV_SET_TOP_BOX;
 
     this.accessory
-      .getService(Service.AccessoryInformation)!
-      .setCharacteristic(Characteristic.Manufacturer, "Sony")
-      .setCharacteristic(Characteristic.Model, deviceInformation.type)
-      .setCharacteristic(Characteristic.SerialNumber, deviceInformation.id);
+      .getService(this.Service.AccessoryInformation)!
+      .setCharacteristic(this.Characteristic.Manufacturer, "Sony")
+      .setCharacteristic(this.Characteristic.Model, deviceInformation.type)
+      .setCharacteristic(
+        this.Characteristic.SerialNumber,
+        deviceInformation.id
+      );
 
-    this.service =
-      this.accessory.getService(Service.Television) ||
-      this.accessory.addService(Service.Television);
-    this.accessory.category = api.hap.Categories.TV_SET_TOP_BOX;
+    this.tvService =
+      this.accessory.getService(this.Service.Television) ||
+      this.accessory.addService(this.Service.Television);
 
-    this.service
-      .setCharacteristic(Characteristic.ConfiguredName, deviceInformation.name)
+    this.tvService
+      .setCharacteristic(this.Characteristic.Name, deviceInformation.name)
       .setCharacteristic(
         this.platform.Characteristic.SleepDiscoveryMode,
         this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
       );
 
-    this.service
-      .getCharacteristic(Characteristic.Active)
+    this.tvService
+      .getCharacteristic(this.Characteristic.Active)
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
 
     // These characteristics are required but not implemented yet
 
-    this.service
-      .getCharacteristic(Characteristic.RemoteKey)
+    this.tvService
+      .getCharacteristic(this.Characteristic.RemoteKey)
       .onSet((newValue: CharacteristicValue) => {
         this.platform.log.debug(
           "Set RemoteKey is not implemented yet",
@@ -64,10 +76,10 @@ export class PlaystationAccessory {
         );
       });
 
-    this.service.setCharacteristic(Characteristic.ActiveIdentifier, 1);
+    this.tvService.setCharacteristic(this.Characteristic.ActiveIdentifier, 1);
 
-    this.service
-      .getCharacteristic(Characteristic.ActiveIdentifier)
+    this.tvService
+      .getCharacteristic(this.Characteristic.ActiveIdentifier)
       .onSet((newValue: CharacteristicValue) => {
         this.platform.log.debug(
           "Set ActiveIdentifier is not implemented yet",
@@ -80,7 +92,7 @@ export class PlaystationAccessory {
       this.platform.config.pollInterval || this.platform.kDefaultPollInterval
     );
 
-    api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
+    this.api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
   }
 
   private getDevice() {
@@ -88,22 +100,22 @@ export class PlaystationAccessory {
   }
 
   private updateCharacteristics() {
-    this.service
+    this.tvService
       .getCharacteristic(this.platform.Characteristic.Active)
       .updateValue(this.deviceInformation.status === DeviceStatus.AWAKE);
   }
 
-  async refreshDeviceInformations() {
-    if (this.lockRefresh) {
-      this.platform.log.debug("Refresh is locked");
-      return;
-    }
-
-    this.lockRefresh = true;
-
+  private async refreshDeviceInformations() {
     try {
+      if (this.lockRefresh) {
+        this.platform.log.debug("Refresh is locked");
+        return;
+      }
+      this.lockRefresh = true;
+
       const device = this.getDevice();
       this.deviceInformation = await device.discover();
+
       this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
@@ -129,54 +141,49 @@ export class PlaystationAccessory {
     }
   }
 
-  async setOn(value: CharacteristicValue) {
-    try {
-      this.platform.log.debug("Set On ->", value);
+  private setOn(value: CharacteristicValue) {
+    this.platform.log.debug("setOn ->", value);
 
-      if (this.lockSetOn) {
-        this.platform.log.info("setOn is locked");
-        throw new this.platform.api.hap.HapStatusError(
-          this.platform.api.hap.HAPStatus.RESOURCE_BUSY
-        );
-      }
-
-      this.addLocks();
-
-      this.platform.log.debug("Connecting to device...");
-
-      const device = this.getDevice();
-      const connection = await this.getDevice().openConnection();
-
-      this.platform.log.debug("Obtained connection");
-
-      if (value) {
-        this.platform.log.debug("Waking device...");
-        await device.wake();
-      } else {
-        this.platform.log.debug("Standby device...");
-        await connection.standby();
-      }
-
-      this.platform.log.debug("Closing connection...");
-      await connection.close();
-
-      this.platform.log.debug("Connection closed");
-
-      // If connection has been closed, most of the time the information has been correctly reflected in the system
-      // We therefore can assume that the device is now in the desired state
-      return value;
-    } catch (err) {
-      this.platform.log.error((err as Error).message);
-      throw new this.platform.api.hap.HapStatusError(
-        this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+    if (this.lockSetOn) {
+      this.platform.log.info("setOn is locked");
+      throw new this.api.hap.HapStatusError(
+        this.api.hap.HAPStatus.RESOURCE_BUSY
       );
-    } finally {
-      this.releaseLocks();
     }
+
+    this.addLocks();
+
+    this.platform.log.debug("Connecting to device...");
+    const device = this.getDevice();
+
+    device
+      .openConnection()
+      .then(async (connection) => {
+        this.platform.log.debug("Obtained connection");
+
+        if (value) {
+          this.platform.log.debug("Waking device...");
+          await device.wake();
+        } else {
+          this.platform.log.debug("Standby device...");
+          await connection.standby();
+        }
+
+        this.platform.log.debug("Closing connection...");
+        await connection.close();
+
+        this.platform.log.debug("Connection closed");
+      })
+      .catch((err) => {
+        this.platform.log.error((err as Error).message);
+      })
+      .finally(() => {
+        this.releaseLocks();
+      });
   }
 
-  async getOn(): Promise<CharacteristicValue> {
-    this.platform.log.debug("GetOn", this.deviceInformation.status);
+  private async getOn(): Promise<CharacteristicValue> {
+    this.platform.log.debug("getOn is ->", this.deviceInformation.status);
     return this.deviceInformation.status === DeviceStatus.AWAKE;
   }
 }
