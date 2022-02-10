@@ -5,10 +5,13 @@ import {
   IDiscoveredDevice,
 } from "playactor/dist/discovery/model";
 
-import { PlaystationPlatform } from "./platform";
+import { PlaystationPlatform } from "./playstationPlatform";
+import { PLUGIN_NAME } from "./settings";
 
 export class PlaystationAccessory {
-  private service: Service;
+  private readonly accessory: PlatformAccessory;
+  private readonly service: Service;
+
   private lockRefresh = false;
   private lockSetOn = false;
 
@@ -17,12 +20,15 @@ export class PlaystationAccessory {
 
   constructor(
     private readonly platform: PlaystationPlatform,
-    private readonly accessory: PlatformAccessory<{
-      deviceInformation: IDiscoveredDevice;
-    }>
+    private deviceInformation: IDiscoveredDevice
   ) {
-    const { Service, Characteristic, api } = this.platform;
-    const { deviceInformation } = accessory.context;
+    const { Service, Characteristic, api } = platform;
+
+    const uuid = api.hap.uuid.generate(deviceInformation.id);
+
+    this.accessory = new api.platformAccessory<{
+      deviceInformation: IDiscoveredDevice;
+    }>(deviceInformation.name, uuid);
 
     this.accessory
       .getService(Service.AccessoryInformation)!
@@ -73,19 +79,18 @@ export class PlaystationAccessory {
       this.refreshDeviceInformations.bind(this),
       this.platform.config.pollInterval || this.platform.kDefaultPollInterval
     );
+
+    api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
   }
 
   private getDevice() {
-    const { deviceInformation } = this.accessory.context;
-    return Device.withId(deviceInformation.id);
+    return Device.withId(this.deviceInformation.id);
   }
 
   private updateCharacteristics() {
     this.service
       .getCharacteristic(this.platform.Characteristic.Active)
-      .updateValue(
-        this.accessory.context.deviceInformation.status === DeviceStatus.AWAKE
-      );
+      .updateValue(this.deviceInformation.status === DeviceStatus.AWAKE);
   }
 
   async refreshDeviceInformations() {
@@ -98,7 +103,7 @@ export class PlaystationAccessory {
 
     try {
       const device = this.getDevice();
-      this.accessory.context.deviceInformation = await device.discover();
+      this.deviceInformation = await device.discover();
       this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
@@ -112,11 +117,11 @@ export class PlaystationAccessory {
     this.lockRefresh = true;
     this.lockTimeout = setTimeout(() => {
       this.platform.log.debug("Removing locks due to timeout");
-      this.removeLocks();
+      this.releaseLocks();
     }, this.kLockTimeout);
   }
 
-  private removeLocks() {
+  private releaseLocks() {
     this.lockSetOn = false;
     this.lockRefresh = false;
     if (this.lockTimeout) {
@@ -125,15 +130,18 @@ export class PlaystationAccessory {
   }
 
   setOn(value: CharacteristicValue) {
-    this.platform.log.debug("Set Characteristic On ->", value);
+    this.platform.log.debug("Set On ->", value);
+
     if (this.lockSetOn) {
-      this.platform.log.info("setOn is temporarly disabled");
+      this.platform.log.info("setOn is locked");
       throw new this.platform.api.hap.HapStatusError(
         this.platform.api.hap.HAPStatus.RESOURCE_BUSY
       );
     }
 
     this.addLocks();
+
+    this.platform.log.debug("Connecting to device...");
 
     const device = this.getDevice();
     device
@@ -142,19 +150,21 @@ export class PlaystationAccessory {
         this.platform.log.debug("Obtained connection");
 
         if (value) {
-          this.platform.log.debug("Waking device");
+          this.platform.log.debug("Waking device...");
           await device.wake();
         } else {
-          this.platform.log.debug("Standby device");
+          this.platform.log.debug("Standby device...");
           await connection.standby();
         }
 
-        this.platform.log.debug("Closing connection");
+        this.platform.log.debug("Closing connection...");
         await connection.close();
 
-        this.platform.log.debug("Connection closed, updating informations");
+        this.platform.log.debug("Connection closed");
 
-        this.accessory.context.deviceInformation.status = value
+        // If connection has been closed, most of the time the information has been correctly reflected in the system
+        // We therefore can assume that the device is now in the desired state
+        this.deviceInformation.status = value
           ? DeviceStatus.AWAKE
           : DeviceStatus.STANDBY;
         this.updateCharacteristics();
@@ -163,18 +173,12 @@ export class PlaystationAccessory {
         this.platform.log.error((err as Error).message);
       })
       .finally(() => {
-        this.removeLocks();
+        this.releaseLocks();
       });
   }
 
   async getOn(): Promise<CharacteristicValue> {
-    this.platform.log.debug(
-      "Get Characteristic On",
-      this.accessory.context.deviceInformation.status
-    );
-
-    return (
-      this.accessory.context.deviceInformation.status === DeviceStatus.AWAKE
-    );
+    this.platform.log.debug("GetOn", this.deviceInformation.status);
+    return this.deviceInformation.status === DeviceStatus.AWAKE;
   }
 }

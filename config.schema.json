@@ -9,7 +9,7 @@
         "title": "Poll Interval",
         "type": "integer",
         "default": 5000,
-        "description": "Determine how often should informations be fetched (in milliseconds)"
+        "description": "Determine how often should device informations be fetched (in milliseconds)"
       }
     }
   }
