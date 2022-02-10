@@ -96,7 +96,11 @@ export class PlaystationAccessory {
   }
 
   private getDevice() {
-    return Device.withId(this.deviceInformation.id);
+    try {
+      return Device.withId(this.deviceInformation.id);
+    } catch (err) {
+      return null;
+    }
   }
 
   private updateCharacteristics() {
@@ -106,16 +110,18 @@ export class PlaystationAccessory {
   }
 
   private async refreshDeviceInformations() {
+    if (this.lockRefresh) {
+      this.platform.log.debug("Refresh is locked");
+      return;
+    }
+
+    this.lockRefresh = true;
+
     try {
-      if (this.lockRefresh) {
-        this.platform.log.debug("Refresh is locked");
-        return;
-      }
-      this.lockRefresh = true;
-
       const device = this.getDevice();
-      this.deviceInformation = await device.discover();
+      if (!device) return;
 
+      this.deviceInformation = await device.discover();
       this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
@@ -151,10 +157,11 @@ export class PlaystationAccessory {
       );
     }
 
-    this.addLocks();
-
     this.platform.log.debug("Connecting to device...");
     const device = this.getDevice();
+    if (!device) return;
+
+    this.addLocks();
 
     device
       .openConnection()
