@@ -129,52 +129,53 @@ export class PlaystationAccessory {
     }
   }
 
-  setOn(value: CharacteristicValue) {
-    this.platform.log.debug("Set On ->", value);
+  async setOn(value: CharacteristicValue) {
+    try {
+      this.platform.log.debug("Set On ->", value);
 
-    if (this.lockSetOn) {
-      this.platform.log.info("setOn is locked");
+      if (this.lockSetOn) {
+        this.platform.log.info("setOn is locked");
+        throw new this.platform.api.hap.HapStatusError(
+          this.platform.api.hap.HAPStatus.RESOURCE_BUSY
+        );
+      }
+
+      this.addLocks();
+
+      this.platform.log.debug("Connecting to device...");
+
+      const device = await this.getDevice();
+      const connection = await device.openConnection();
+
+      this.platform.log.debug("Obtained connection");
+
+      if (value) {
+        this.platform.log.debug("Waking device...");
+        await device.wake();
+      } else {
+        this.platform.log.debug("Standby device...");
+        await connection.standby();
+      }
+
+      this.platform.log.debug("Closing connection...");
+      await connection.close();
+
+      this.platform.log.debug("Connection closed");
+
+      // If connection has been closed, most of the time the information has been correctly reflected in the system
+      // We therefore can assume that the device is now in the desired state
+      this.deviceInformation.status = value
+        ? DeviceStatus.AWAKE
+        : DeviceStatus.STANDBY;
+      this.updateCharacteristics();
+    } catch (err) {
+      this.platform.log.error((err as Error).message);
       throw new this.platform.api.hap.HapStatusError(
-        this.platform.api.hap.HAPStatus.RESOURCE_BUSY
+        this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
       );
+    } finally {
+      this.releaseLocks();
     }
-
-    this.addLocks();
-
-    this.platform.log.debug("Connecting to device...");
-
-    const device = this.getDevice();
-    device
-      .openConnection()
-      .then(async (connection) => {
-        this.platform.log.debug("Obtained connection");
-
-        if (value) {
-          this.platform.log.debug("Waking device...");
-          await device.wake();
-        } else {
-          this.platform.log.debug("Standby device...");
-          await connection.standby();
-        }
-
-        this.platform.log.debug("Closing connection...");
-        await connection.close();
-
-        this.platform.log.debug("Connection closed");
-
-        // If connection has been closed, most of the time the information has been correctly reflected in the system
-        // We therefore can assume that the device is now in the desired state
-        this.deviceInformation.status = value
-          ? DeviceStatus.AWAKE
-          : DeviceStatus.STANDBY;
-        this.updateCharacteristics();
-      })
-      .catch((err) => {
-        this.platform.log.error((err as Error).message);
-      })
-      .finally(() => {
-        this.releaseLocks();
-      });
   }
 
   async getOn(): Promise<CharacteristicValue> {
