@@ -23,7 +23,7 @@ export class PlaystationAccessory {
   private readonly Characteristic: typeof Characteristic =
     this.platform.Characteristic;
 
-  private lockRefresh = false;
+  private lockUpdate = false;
   private lockSetOn = false;
 
   private lockTimeout: NodeJS.Timeout | undefined;
@@ -33,7 +33,7 @@ export class PlaystationAccessory {
     private readonly platform: PlaystationPlatform,
     private deviceInformation: IDiscoveredDevice
   ) {
-    const uuid = this.api.hap.uuid.generate(deviceInformation.id);
+    const uuid = this.api.hap.uuid.generate(deviceInformation.id + "1");
 
     this.accessory = new this.api.platformAccessory<{
       deviceInformation: IDiscoveredDevice;
@@ -44,9 +44,10 @@ export class PlaystationAccessory {
       .getService(this.Service.AccessoryInformation)!
       .setCharacteristic(this.Characteristic.Manufacturer, "Sony")
       .setCharacteristic(this.Characteristic.Model, deviceInformation.type)
+      .setCharacteristic(this.Characteristic.SerialNumber, deviceInformation.id)
       .setCharacteristic(
-        this.Characteristic.SerialNumber,
-        deviceInformation.id
+        this.Characteristic.FirmwareRevision,
+        deviceInformation.systemVersion
       );
 
     this.tvService =
@@ -88,51 +89,52 @@ export class PlaystationAccessory {
       });
 
     setInterval(
-      this.refreshDeviceInformations.bind(this),
+      this.updateDeviceInformations.bind(this),
       this.platform.config.pollInterval || this.platform.kDefaultPollInterval
     );
 
     this.api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
   }
 
-  private getDevice() {
-    try {
-      return Device.withId(this.deviceInformation.id);
-    } catch (err) {
-      return null;
-    }
+  private async discoverDevice() {
+    // Wrapper to get the device and making sure you always call .discover() before using the device,
+    // otherwise you will get a "Error: Unexpected discovery message"
+    const device = Device.withId(this.deviceInformation.id);
+    this.deviceInformation = await device.discover();
+    return device;
   }
 
   private updateCharacteristics() {
     this.tvService
       .getCharacteristic(this.platform.Characteristic.Active)
       .updateValue(this.deviceInformation.status === DeviceStatus.AWAKE);
+
+    this.platform.log.debug(
+      "Device status updated",
+      this.deviceInformation.status
+    );
   }
 
-  private async refreshDeviceInformations() {
-    if (this.lockRefresh) {
-      this.platform.log.debug("Refresh is locked");
+  private async updateDeviceInformations(force = false) {
+    if (this.lockUpdate && !force) {
       return;
     }
 
-    this.lockRefresh = true;
+    this.lockUpdate = true;
 
     try {
-      const device = this.getDevice();
-      if (!device) return;
-
-      this.deviceInformation = await device.discover();
+      await this.discoverDevice();
       this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
     } finally {
-      this.lockRefresh = false;
+      this.lockUpdate = false;
     }
   }
 
   private addLocks() {
     this.lockSetOn = true;
-    this.lockRefresh = true;
+    this.lockUpdate = true;
     this.lockTimeout = setTimeout(() => {
       this.platform.log.debug("Removing locks due to timeout");
       this.releaseLocks();
@@ -141,7 +143,7 @@ export class PlaystationAccessory {
 
   private releaseLocks() {
     this.lockSetOn = false;
-    this.lockRefresh = false;
+    this.lockUpdate = false;
     if (this.lockTimeout) {
       clearTimeout(this.lockTimeout);
     }
@@ -158,14 +160,14 @@ export class PlaystationAccessory {
     }
 
     this.platform.log.debug("Connecting to device...");
-    const device = this.getDevice();
-    if (!device) return;
-
     this.addLocks();
 
-    device
-      .openConnection()
-      .then(async (connection) => {
+    this.discoverDevice()
+      .then(async (device) => ({
+        device,
+        connection: await device.openConnection(),
+      }))
+      .then(async ({ device, connection }) => {
         this.platform.log.debug("Obtained connection");
 
         if (value) {
@@ -180,6 +182,7 @@ export class PlaystationAccessory {
         await connection.close();
 
         this.platform.log.debug("Connection closed");
+        await this.updateDeviceInformations(true);
       })
       .catch((err) => {
         this.platform.log.error((err as Error).message);
