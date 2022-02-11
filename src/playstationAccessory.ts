@@ -159,16 +159,25 @@ export class PlaystationAccessory {
       );
     }
 
-    this.platform.log.debug("Connecting to device...");
+    this.platform.log.debug("Discovering device...");
+
     this.addLocks();
 
     this.discoverDevice()
-      .then(async (device) => ({
-        device,
-        connection: await device.openConnection(),
-      }))
-      .then(async ({ device, connection }) => {
-        this.platform.log.debug("Obtained connection");
+      .then(async (device) => {
+        if (
+          (value == true &&
+            this.deviceInformation.status === DeviceStatus.AWAKE) ||
+          (value == false &&
+            this.deviceInformation.status === DeviceStatus.STANDBY)
+        ) {
+          this.platform.log.debug("Already in desired state");
+          this.updateCharacteristics();
+          return;
+        }
+
+        this.platform.log.debug("Opening connection...");
+        const connection = await device.openConnection();
 
         if (value) {
           this.platform.log.debug("Waking device...");
@@ -182,7 +191,6 @@ export class PlaystationAccessory {
         await connection.close();
 
         this.platform.log.debug("Connection closed");
-        await this.updateDeviceInformations(true);
       })
       .catch((err) => {
         this.platform.log.error((err as Error).message);

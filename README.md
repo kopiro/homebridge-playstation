@@ -38,7 +38,7 @@ Open the authorization link provided, authenticate it using your PSN account, an
 
 Once you've done that, go to Settings > System > Remote Play > Link Device and provide the PIN code.
 
-Now just restart the HomeBridge instance, and add your fresh new PlayStation as extra accessory using "Add Accessory" in the Home app.
+Now just restart the HomeBridge instance, and you should see a message like `"Please add [PS5 XYZ] manually in Home app. Setup Code: 111-22-333"` in the Homebridge logs; it's time to add your fresh new PlayStation as extra accessory using "Add Accessory" in the Home app.
 
 ## Parameters
 
