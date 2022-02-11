@@ -191,10 +191,6 @@ export class PlaystationAccessory {
         await connection.close();
 
         this.platform.log.debug("Connection closed");
-        this.deviceInformation.status = value
-          ? DeviceStatus.AWAKE
-          : DeviceStatus.STANDBY;
-        await this.updateCharacteristics();
       })
       .catch((err) => {
         this.platform.log.error((err as Error).message);
