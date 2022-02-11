@@ -159,7 +159,8 @@ export class PlaystationAccessory {
       );
     }
 
-    this.platform.log.debug("Connecting to device...");
+    this.platform.log.debug("Discovering device...");
+
     this.addLocks();
 
     this.discoverDevice()
