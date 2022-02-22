@@ -43,7 +43,7 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    "playactor": "^0.4.0"
+    "playactor": "^0.4.1"
   },
   "devDependencies": {
     "@types/node": "^16.10.9",
