@@ -28,7 +28,7 @@ npm -g install homebridge-playstation
 
 ## Configuration
 
-Before doing anything, switch on your PlayStation.
+Before doing anything, switch on your PlayStation and active "Remote Play" in the settings.
 
 Now you need to configure **PlayActor** and follow the authentication process provided by the library; to do so, open the terminal in the HomeBridge UI (make sure you don't run these commands as `root`, you need to run them as `homebridge` user!) and run:
 
