@@ -8,7 +8,7 @@ import {
 } from "homebridge";
 
 import { PlaystationAccessory } from "./playstationAccessory";
-import { Device } from "playactor/dist/device";
+import { Discovery } from "playactor/dist/discovery";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
@@ -37,10 +37,12 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
   }
 
   async discoverDevices() {
-    const device = await Device.any();
-    const deviceInformation = await device.discover();
-    this.log.info("Discovered device:", deviceInformation);
+    const discovery = new Discovery();
+    const devices = discovery.discover();
 
-    new PlaystationAccessory(this, deviceInformation);
+    for await (const deviceInformation of devices) {
+      this.log.info("Discovered device:", deviceInformation);
+      new PlaystationAccessory(this, deviceInformation);
+    }
   }
 }
