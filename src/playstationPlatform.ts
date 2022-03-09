@@ -37,8 +37,8 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
   }
 
   async discoverDevices() {
-    const discovery = new Discovery()
-    const devices = discovery.discover()
+    const discovery = new Discovery();
+    const devices = discovery.discover();
 
     for await (const deviceInformation of devices) {
       this.log.info("Discovered device:", deviceInformation);
