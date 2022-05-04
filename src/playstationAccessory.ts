@@ -10,9 +10,15 @@ import {
   DeviceStatus,
   IDiscoveredDevice,
 } from "playactor/dist/discovery/model";
+import { addLock, hasLock, releaseLock } from "./locks";
 
 import { PlaystationPlatform } from "./playstationPlatform";
 import { PLUGIN_NAME } from "./settings";
+
+enum Locks {
+  "RETRIEVE_DEVICE_STATUS" = "RETRIEVE_DEVICE_STATUS",
+  "SET_ON" = "SET_ON",
+}
 
 export class PlaystationAccessory {
   private readonly accessory: PlatformAccessory;
@@ -23,11 +29,7 @@ export class PlaystationAccessory {
   private readonly Characteristic: typeof Characteristic =
     this.platform.Characteristic;
 
-  private lockUpdate = false;
-  private lockSetOn = false;
-
-  private lockTimeout: NodeJS.Timeout | undefined;
-  private readonly kLockTimeout = 20_000;
+  private deviceReachable = false;
 
   constructor(
     private readonly platform: PlaystationPlatform,
@@ -88,8 +90,9 @@ export class PlaystationAccessory {
         );
       });
 
+    this.retrieveDeviceStatusAndUpdateAllCharacteristics();
     setInterval(
-      this.updateDeviceInformations.bind(this),
+      this.retrieveDeviceStatusAndUpdateAllCharacteristics.bind(this),
       this.platform.config.pollInterval || this.platform.kDefaultPollInterval
     );
 
@@ -97,71 +100,71 @@ export class PlaystationAccessory {
   }
 
   private async discoverDevice() {
-    // Wrapper to get the device and making sure you always call .discover() before using the device,
-    // otherwise you will get a "Error: Unexpected discovery message"
-    const device = Device.withId(this.deviceInformation.id);
-    this.deviceInformation = await device.discover();
-    return device;
+    this.platform.log.debug("Discovering device...");
+
+    try {
+      // Wrapper to get the device and making sure you always call .discover() before using the device,
+      // otherwise you will get a "Error: Unexpected discovery message"
+      const device = Device.withId(this.deviceInformation.id);
+      this.deviceInformation = await device.discover();
+      this.deviceReachable = true;
+      return device;
+    } catch (err) {
+      this.platform.log.debug("Device is not reachable");
+      this.deviceReachable = false;
+      throw err;
+    }
   }
 
-  private updateCharacteristics() {
+  private updateAllCharacteristics() {
+    const activeValue = this.getCharacteristicActiveValue();
     this.tvService
       .getCharacteristic(this.platform.Characteristic.Active)
-      .updateValue(this.deviceInformation.status === DeviceStatus.AWAKE);
+      .updateValue(activeValue);
 
-    this.platform.log.debug(
-      "Device status updated",
-      this.deviceInformation.status
-    );
+    this.platform.log.debug("Characteristic Active ->", activeValue);
   }
 
-  private async updateDeviceInformations(force = false) {
-    if (this.lockUpdate && !force) {
-      return;
-    }
+  private async retrieveDeviceStatusAndUpdateAllCharacteristics() {
+    if (hasLock(Locks.RETRIEVE_DEVICE_STATUS)) return;
 
-    this.lockUpdate = true;
+    addLock(Locks.RETRIEVE_DEVICE_STATUS, 20_000);
+    this.platform.log.debug("Updating device informations...");
 
     try {
       await this.discoverDevice();
-      this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
-    } finally {
-      this.lockUpdate = false;
     }
+
+    releaseLock(Locks.RETRIEVE_DEVICE_STATUS);
+    this.updateAllCharacteristics();
   }
 
-  private addLocks() {
-    this.lockSetOn = true;
-    this.lockUpdate = true;
-    this.lockTimeout = setTimeout(() => {
-      this.platform.log.debug("Removing locks due to timeout");
-      this.releaseLocks();
-    }, this.kLockTimeout);
-  }
-
-  private releaseLocks() {
-    this.lockSetOn = false;
-    this.lockUpdate = false;
-    if (this.lockTimeout) {
-      clearTimeout(this.lockTimeout);
-    }
+  private async getOn() {
+    return this.getCharacteristicActiveValue();
   }
 
   private setOn(value: CharacteristicValue) {
-    this.platform.log.debug("setOn ->", value);
+    this.platform.log.debug("Requesting active value to", value);
 
-    if (this.lockSetOn) {
-      this.platform.log.info("setOn is locked");
+    if (hasLock(Locks.SET_ON)) {
+      this.platform.log.info("Locked");
       throw new this.api.hap.HapStatusError(
         this.api.hap.HAPStatus.RESOURCE_BUSY
       );
     }
 
-    this.platform.log.debug("Discovering device...");
+    // If device is not reachable, we throw error
+    // during the setOn instead of simply showing it off
+    if (!this.deviceReachable) {
+      this.platform.log.info("Device is unreachable");
+      throw new this.api.hap.HapStatusError(
+        this.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+      );
+    }
 
-    this.addLocks();
+    addLock(Locks.SET_ON, 20_000);
 
     this.discoverDevice()
       .then(async (device) => {
@@ -172,7 +175,7 @@ export class PlaystationAccessory {
             this.deviceInformation.status === DeviceStatus.STANDBY)
         ) {
           this.platform.log.debug("Already in desired state");
-          this.updateCharacteristics();
+          this.updateAllCharacteristics();
           return;
         }
 
@@ -193,15 +196,21 @@ export class PlaystationAccessory {
         this.platform.log.debug("Connection closed");
       })
       .catch((err) => {
-        this.platform.log.error((err as Error).message);
+        this.platform.log.error(
+          "setOn caused an error",
+          (err as Error).message
+        );
+        this.updateAllCharacteristics();
       })
       .finally(() => {
-        this.releaseLocks();
+        releaseLock(Locks.SET_ON);
       });
   }
 
-  private async getOn(): Promise<CharacteristicValue> {
-    this.platform.log.debug("getOn is ->", this.deviceInformation.status);
-    return this.deviceInformation.status === DeviceStatus.AWAKE;
+  private getCharacteristicActiveValue(): boolean {
+    return (
+      this.deviceReachable &&
+      this.deviceInformation.status === DeviceStatus.AWAKE
+    );
   }
 }
