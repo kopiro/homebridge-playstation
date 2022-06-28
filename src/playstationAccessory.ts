@@ -55,7 +55,10 @@ export class PlaystationAccessory {
       this.accessory.addService(this.Service.Television);
 
     this.tvService
-      .setCharacteristic(this.Characteristic.Name, deviceInformation.name)
+      .setCharacteristic(
+        this.Characteristic.ConfiguredName,
+        deviceInformation.name
+      )
       .setCharacteristic(
         this.platform.Characteristic.SleepDiscoveryMode,
         this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
