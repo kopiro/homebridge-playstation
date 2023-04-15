@@ -28,19 +28,21 @@ npm -g install homebridge-playstation
 
 ## Configuration
 
-Before doing anything, switch on your PlayStation and active "Remote Play" in the settings.
+- Turn on your PlayStation, go to "Settings" and enable "Remote Play".
 
-Now you need to configure **PlayActor** and follow the authentication process provided by the library; to do so, open the terminal in the HomeBridge UI (make sure you don't run these commands as `root`, you need to run them as `homebridge` user!) and run:
+- Open the terminal in the Homebridge UI (NOTE: you need to run these commands as `homebridge` user, make sure you don't run these commands as `root` or anything else, otherwise the link won't work) and run:
 
 ```bash
 homebridge-playstation-login
 ```
 
-Open the authorization link provided, authenticate it using your PSN account, and copy the URL when the page shows "redirect" in the terminal.
+- Open the authorization link provided, authenticate it using your PSN account, and copy the URL when the page shows "redirect" in the terminal.
 
-Once you've done that, go to Settings > System > Remote Play > Link Device and provide the PIN code.
+- On your PlayStation go to "Settings" > "System" > "Remote Play" > "Link Device" and provide the PIN code.
 
-Now just restart the HomeBridge instance, and you should see a message like `"Please add [PS5 XYZ] manually in Home app. Setup Code: 111-22-333"` in the Homebridge logs; it's time to add your fresh new PlayStation as extra accessory using "Add Accessory" in the Home app.
+- Restart the HomeBridge instance
+
+- At boot, you should see a message like `"Please add [PS5 XYZ] manually in Home app. Setup Code: 111-22-333"` in the  logs; open the Home app and add your PlayStation as an extra accessory using "Add Accessory" in the top-right menu
 
 ## Parameters
 
