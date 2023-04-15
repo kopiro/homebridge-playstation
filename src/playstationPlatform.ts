@@ -18,7 +18,7 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
   public readonly Characteristic: typeof Characteristic =
     this.api.hap.Characteristic;
 
-  public readonly kDefaultPollInterval = 5000;
+  public readonly kDefaultPollInterval = 15_000;
 
   constructor(
     public readonly log: Logger,
