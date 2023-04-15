@@ -47,3 +47,11 @@ homebridge-playstation-login
 ## Parameters
 
 - `pollInterval`: Determine how often should informations be fetched (in milliseconds)
+
+## Troubleshooting
+
+If at some point you have any problem, you can try to reset the Homebridge accessory and re-pair it.
+
+To do so, go to Homebridge UI > "Settings" > "Unpair Bridges / Cameras / TVs / External Accessories" and delete the Playstation.
+
+To reset the credentials used by PlayActor, you need to manually remove the directory `/home/homebridge/.config/playactor`
