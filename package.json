@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge Playstation",
   "name": "homebridge-playstation",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Playstation integration for Homebridge",
   "license": "Apache-2.0",
   "repository": {
