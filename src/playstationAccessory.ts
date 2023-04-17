@@ -156,7 +156,9 @@ export class PlaystationAccessory {
     this.platform.log.debug("setOn ->", value);
 
     if (this.lockSetOn) {
-      this.platform.log.info("setOn is locked");
+      this.platform.log.info(
+        `Lock is active, ignoring request.\nYou're experiencing this because the previous operation is still in progress, or, less likely because the cleanup of the previous connection failed.\nThis is a Playstation and RemotePlay limitation, as opening/closing connection can take up to 20 seconds, after which the lock will be released anyway.\nTry to use the plugin as normal without hammering the switch button on/off, don't fall in the trap of the Heisenbug.`
+      );
       throw new this.api.hap.HapStatusError(
         this.api.hap.HAPStatus.RESOURCE_BUSY
       );
