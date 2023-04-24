@@ -30,11 +30,13 @@ npm -g install homebridge-playstation
 
 - Turn on your PlayStation, go to "Settings" and enable "Remote Play".
 
-- Open the terminal in the Homebridge UI (NOTE: you need to run these commands as `homebridge` user, make sure you don't run these commands as `root` or anything else, otherwise the link won't work) and run:
+- Run this command as `homebridge` user, make sure you don't run these commands as `root` or `pi`, otherwise nothing will work):
 
 ```bash
 homebridge-playstation-login
 ```
+
+You can do this by using the Homebridge UI terminal or an SSH session and manually changing user with `su homebridge`
 
 - Open the authorization link provided, authenticate it using your PSN account, and copy the URL when the page shows "redirect" in the terminal.
 
