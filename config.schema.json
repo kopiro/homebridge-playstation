@@ -1,6 +1,7 @@
 {
   "pluginAlias": "playstation",
   "pluginType": "platform",
+  "footerDisplay": "Homebridge plugin for Playstation 4/5 consoles.",
   "singular": true,
   "schema": {
     "type": "object",
@@ -9,7 +10,31 @@
         "title": "Poll Interval",
         "type": "integer",
         "default": 5000,
-        "description": "Determine how often should device informations be fetched (in milliseconds)"
+        "description": "Determine how often should device information be fetched (in milliseconds)"
+      },
+      "apps": {
+        "title": "List of applications you can control.",
+        "description": "A list of playstation games. You can find them here <a href=\"https://serialstation.com\" target=\"_blank\">serialstation.com</a> or use `playactor check` to get information about the running title.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "title": "Title ID",
+              "type": "string",
+              "placeholder": "CUSA12345",
+              "required": true,
+              "minLength": 8
+            },
+            "name": {
+              "title": "Application Name",
+              "type": "string",
+              "placeholder": "Fortnite (shown in Home app)",
+              "required": true,
+              "minLength": 2
+            }
+          }
+        }
       }
     }
   }
