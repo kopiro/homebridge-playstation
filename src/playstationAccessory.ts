@@ -1,9 +1,18 @@
-import {API, Characteristic, CharacteristicValue, PlatformAccessory, Service,} from "homebridge";
-import {Device} from "playactor/dist/device";
-import {DeviceStatus, IDiscoveredDevice,} from "playactor/dist/discovery/model";
+import {
+  API,
+  Characteristic,
+  CharacteristicValue,
+  PlatformAccessory,
+  Service,
+} from "homebridge";
+import { Device } from "playactor/dist/device";
+import {
+  DeviceStatus,
+  IDiscoveredDevice,
+} from "playactor/dist/discovery/model";
 
-import {PlaystationPlatform} from "./playstationPlatform";
-import {PLUGIN_NAME} from "./settings";
+import { PlaystationPlatform } from "./playstationPlatform";
+import { PLUGIN_NAME } from "./settings";
 
 export class PlaystationAccessory {
   private readonly accessory: PlatformAccessory;
@@ -79,7 +88,7 @@ export class PlaystationAccessory {
 
     this.tvService
       .getCharacteristic(this.Characteristic.ActiveIdentifier)
-      .onSet(this.setTitleSwitchState.bind(this))
+      .onSet(this.setTitleSwitchState.bind(this));
 
     setInterval(
       this.updateDeviceInformations.bind(this),
@@ -91,7 +100,7 @@ export class PlaystationAccessory {
 
   private setTitleList() {
     // if nothing selected yet, add a placeholder
-    this.addTitleToList('CUSAXXXXXX', '---', 0);
+    this.addTitleToList("CUSAXXXXXX", "---", 0);
     const titleList = this.platform.config.apps || [];
     titleList.forEach((title, index) => {
       this.addTitleToList(title.id, title.name, index + 1);
@@ -99,7 +108,6 @@ export class PlaystationAccessory {
   }
 
   private addTitleToList(titleId: string, titleName: string, index: number) {
-
     this.platform.log.debug("adding input for title: ", titleId, titleName);
 
     const titleInputSource = new this.Service.InputSource(titleName, titleId);
@@ -107,14 +115,23 @@ export class PlaystationAccessory {
       .setCharacteristic(this.Characteristic.Identifier, index)
       .setCharacteristic(this.Characteristic.Name, titleName)
       .setCharacteristic(this.Characteristic.ConfiguredName, titleName)
-      .setCharacteristic(this.Characteristic.IsConfigured, this.Characteristic.IsConfigured.CONFIGURED)
-      .setCharacteristic(this.Characteristic.InputSourceType, this.Characteristic.InputSourceType.APPLICATION)
-      .setCharacteristic(this.Characteristic.CurrentVisibilityState, this.Characteristic.CurrentVisibilityState.SHOWN);
+      .setCharacteristic(
+        this.Characteristic.IsConfigured,
+        this.Characteristic.IsConfigured.CONFIGURED
+      )
+      .setCharacteristic(
+        this.Characteristic.InputSourceType,
+        this.Characteristic.InputSourceType.APPLICATION
+      )
+      .setCharacteristic(
+        this.Characteristic.CurrentVisibilityState,
+        this.Characteristic.CurrentVisibilityState.SHOWN
+      );
 
     this.accessory.addService(titleInputSource);
     this.tvService.addLinkedService(titleInputSource);
 
-    this.titleIDs.push(titleId)
+    this.titleIDs.push(titleId);
   }
 
   private async discoverDevice() {
@@ -130,12 +147,20 @@ export class PlaystationAccessory {
       .getCharacteristic(this.platform.Characteristic.Active)
       .updateValue(this.deviceInformation.status === DeviceStatus.AWAKE);
 
-    const runningAppTitle = this.titleIDs.indexOf(this.deviceInformation.extras['running-app-titleid'] || 0);
+    const runningAppTitle = this.titleIDs.indexOf(
+      this.deviceInformation.extras["running-app-titleid"] || 0
+    );
     this.tvService
       .getCharacteristic(this.platform.Characteristic.ActiveIdentifier)
       .updateValue(runningAppTitle == -1 ? 0 : runningAppTitle);
 
-    this.platform.log.debug(`Device status updated ${this.deviceInformation.status}, title: ${this.deviceInformation.extras['running-app-titleid'] || 'no app running'} ${this.deviceInformation.extras['running-app-name'] || ''} id: ${runningAppTitle}`);
+    this.platform.log.debug(
+      `Device status updated ${this.deviceInformation.status}, title: ${
+        this.deviceInformation.extras["running-app-titleid"] || "no app running"
+      } ${
+        this.deviceInformation.extras["running-app-name"] || ""
+      } id: ${runningAppTitle}`
+    );
   }
 
   private async updateDeviceInformations(force = false) {
@@ -233,7 +258,7 @@ export class PlaystationAccessory {
   private async setTitleSwitchState(value: CharacteristicValue) {
     this.platform.log.debug("setTitleSwitchState ->", value);
 
-    const requestedTitle = this.titleIDs[value as number] as string || null
+    const requestedTitle = (this.titleIDs[value as number] as string) || null;
 
     if (!requestedTitle) {
       this.platform.log.debug("No title found for index ->", value);
@@ -253,7 +278,10 @@ export class PlaystationAccessory {
 
     this.discoverDevice()
       .then(async (device) => {
-        if (this.deviceInformation.extras['running-app-titleid'] === requestedTitle) {
+        if (
+          this.deviceInformation.extras["running-app-titleid"] ===
+          requestedTitle
+        ) {
           this.platform.log.debug("Title already running");
           this.updateCharacteristics();
           return;

@@ -13,7 +13,7 @@
         "description": "Determine how often should device information be fetched (in milliseconds)"
       },
       "apps": {
-        "title": "List of applications you can control.",
+        "title": "List of applications you can control. (Doesn't work on PlayStation 5)",
         "description": "A list of playstation games. You can find them here <a href=\"https://serialstation.com\" target=\"_blank\">serialstation.com</a> or use `playactor check` to get information about the running title.",
         "type": "array",
         "items": {
