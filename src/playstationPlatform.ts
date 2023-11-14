@@ -25,7 +25,7 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
     public readonly config: PlaystationPlatformConfig,
     public readonly api: API
   ) {
-    this.log.debug("Discovering devices...");
+    this.log.info("Discovering devices...");
 
     this.discoverDevices()
       .then(() => {
@@ -43,6 +43,9 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
     for await (const deviceInformation of devices) {
       this.log.debug("Discovered device:", deviceInformation);
       new PlaystationAccessory(this, deviceInformation);
+
+      // Do not add more then one device as current method does not support multiple devices
+      break;
     }
   }
 }

@@ -37,10 +37,11 @@ export class PlaystationAccessory {
     private deviceInformation: IDiscoveredDevice
   ) {
     const uuid = this.api.hap.uuid.generate(deviceInformation.id);
+    const name = this.platform.config.name || deviceInformation.name;
 
     this.accessory = new this.api.platformAccessory<{
       deviceInformation: IDiscoveredDevice;
-    }>(deviceInformation.name, uuid);
+    }>(name, uuid);
     this.accessory.category = this.api.hap.Categories.TV_SET_TOP_BOX;
 
     this.accessory
@@ -58,10 +59,7 @@ export class PlaystationAccessory {
       this.accessory.addService(this.Service.Television);
 
     this.tvService
-      .setCharacteristic(
-        this.Characteristic.ConfiguredName,
-        deviceInformation.name
-      )
+      .setCharacteristic(this.Characteristic.ConfiguredName, name)
       .setCharacteristic(
         this.platform.Characteristic.SleepDiscoveryMode,
         this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE
@@ -172,11 +170,13 @@ export class PlaystationAccessory {
 
     try {
       await this.discoverDevice();
-      this.updateCharacteristics();
     } catch (err) {
       this.platform.log.error((err as Error).message);
+      // If we can't discover the device, it's probably OFF
+      this.deviceInformation.status = DeviceStatus.STANDBY;
     } finally {
       this.lockUpdate = false;
+      this.updateCharacteristics();
     }
   }
 
