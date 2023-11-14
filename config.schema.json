@@ -6,6 +6,12 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "optional": true,
+        "description": "Name of the accessory, fallback to device name if left empty"
+      },
       "pollInterval": {
         "title": "Poll Interval",
         "type": "integer",
