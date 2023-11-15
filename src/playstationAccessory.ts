@@ -37,11 +37,14 @@ export class PlaystationAccessory {
     private deviceInformation: IDiscoveredDevice
   ) {
     const uuid = this.api.hap.uuid.generate(deviceInformation.id);
-    const name = this.platform.config.name || deviceInformation.name;
+    const consoleName =
+      this.platform.config.consoleName ||
+      deviceInformation.name ||
+      "PlayStation";
 
     this.accessory = new this.api.platformAccessory<{
       deviceInformation: IDiscoveredDevice;
-    }>(name, uuid);
+    }>(consoleName, uuid);
     this.accessory.category = this.api.hap.Categories.TV_SET_TOP_BOX;
 
     this.accessory
@@ -59,7 +62,7 @@ export class PlaystationAccessory {
       this.accessory.addService(this.Service.Television);
 
     this.tvService
-      .setCharacteristic(this.Characteristic.ConfiguredName, name)
+      .setCharacteristic(this.Characteristic.ConfiguredName, consoleName)
       .setCharacteristic(
         this.platform.Characteristic.SleepDiscoveryMode,
         this.platform.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE

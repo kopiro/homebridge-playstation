@@ -12,6 +12,7 @@ import { Discovery } from "playactor/dist/discovery";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
+  consoleName?: string;
 }
 export class PlaystationPlatform implements IndependentPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -25,7 +26,7 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
     public readonly config: PlaystationPlatformConfig,
     public readonly api: API
   ) {
-    this.log.info("Discovering devices...");
+    this.log.debug("Discovering devices...");
 
     this.discoverDevices()
       .then(() => {

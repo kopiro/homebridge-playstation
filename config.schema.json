@@ -6,15 +6,17 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
+      "consoleName": {
+        "title": "Console Name",
         "type": "string",
         "optional": true,
-        "description": "Name of the accessory, fallback to device name if left empty"
+        "default": "",
+        "description": "Name of the console, fallback to the original device name if left empty"
       },
       "pollInterval": {
         "title": "Poll Interval",
         "type": "integer",
+        "optional": true,
         "default": 5000,
         "description": "Determine how often should device information be fetched (in milliseconds)"
       },
