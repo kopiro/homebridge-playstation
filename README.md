@@ -1,9 +1,3 @@
-<p align="center">
-
-<img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
-
-</p>
-
 # Homebridge Playstation
 
 ### Playstation integration for Homebridge / HOOBS.
