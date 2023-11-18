@@ -6,21 +6,37 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "optional": true,
-        "description": "Name of the accessory, fallback to device name if left empty"
-      },
       "pollInterval": {
         "title": "Poll Interval",
         "type": "integer",
         "default": 5000,
         "description": "Determine how often should device information be fetched (in milliseconds)"
       },
+      "overrides": {
+        "title": "Overrides for default values of the console",
+        "type": "array",
+        "description": "Most of the information is fetched from the console itself. If you want to override some values, you can do it here; create an entry for each console you want to override by providing the device ID and the properties to override.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "deviceId": {
+              "title": "Device ID",
+              "type": "string",
+              "placeholder": "1234567890",
+              "required": true
+            },
+            "name": {
+              "title": "Console Name",
+              "type": "string",
+              "placeholder": "Playstation 5",
+              "required": false
+            }
+          }
+        }
+      },
       "apps": {
-        "title": "List of applications you can control. (Doesn't work on PlayStation 5)",
-        "description": "A list of playstation games. You can find them here <a href=\"https://serialstation.com\" target=\"_blank\">serialstation.com</a> or use `playactor check` to get information about the running title.",
+        "title": "List of applications you can control.",
+        "description": "(Doesn't work on PlayStation 5) A list of playstation games. You can find them here <a href=\"https://serialstation.com\" target=\"_blank\">serialstation.com</a> or use `playactor check` to get information about the running title.",
         "type": "array",
         "items": {
           "type": "object",

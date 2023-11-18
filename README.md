@@ -40,10 +40,6 @@ You can do this by using the Homebridge UI terminal or an SSH session and manual
 
 - At boot, you should see a message like `"Please add [PS5 XYZ] manually in Home app. Setup Code: 111-22-333"` in the  logs; open the Home app and add your PlayStation as an extra accessory using "Add Accessory" in the top-right menu
 
-## Parameters
-
-- `pollInterval`: Determine how often should informations be fetched (in milliseconds)
-
 ## Troubleshooting
 
 If at some point you have any problem, you can try to reset the Homebridge accessory and re-pair it.
