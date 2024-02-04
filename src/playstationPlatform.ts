@@ -12,6 +12,8 @@ import { Discovery } from "playactor/dist/discovery";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
+  PSNAWP?: string;
+  account_id?: Array<{ id: string;}>;
   overrides?: Array<{ deviceId: string; name?: string }>;
   apps?: Array<{ id: string; name: string }>;
 }

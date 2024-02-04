@@ -12,48 +12,24 @@
         "default": 5000,
         "description": "Determine how often should device information be fetched (in milliseconds)"
       },
-      "overrides": {
-        "title": "Overrides for default values of the console",
-        "type": "array",
-        "description": "Most of the information is fetched from the console itself. If you want to override some values, you can do it here; create an entry for each console you want to override by providing the device ID and the properties to override.",
-        "items": {
-          "type": "object",
-          "properties": {
-            "deviceId": {
-              "title": "Device ID",
-              "type": "string",
-              "placeholder": "1234567890",
-              "required": true
-            },
-            "name": {
-              "title": "Console Name",
-              "type": "string",
-              "placeholder": "Playstation 5",
-              "required": false
-            }
-          }
-        }
+      "PSNAWP": {
+        "title": "PSNAWP Key",
+        "type": "string",
+        "default": "",
+        "description": "1. Login into your <a href=\"https://www.playstation.com/\" target=\"_blank\">PlayStation</a> account.<br>2. Go to <a href=\"https://ca.account.sony.com/api/v1/ssocookie\" target=\"_blank\">get npsso value</a><br>3. Copy and paste key to PSNAWP field"
       },
-      "apps": {
-        "title": "List of applications you can control.",
-        "description": "(Doesn't work on PlayStation 5) A list of playstation games. You can find them here <a href=\"https://serialstation.com\" target=\"_blank\">serialstation.com</a> or use `playactor check` to get information about the running title.",
+      "account_id": {
+        "title": "Account ID (IDs for many account)",
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
             "id": {
-              "title": "Title ID",
+              "title": "Account ID",
               "type": "string",
-              "placeholder": "CUSA12345",
-              "required": true,
+              "placeholder": "",
+              "description": "Get account_id with command 'client.account_id' from <a href=\"https://github.com/isFakeAccount/psnawp\" target=\"_blank\">here</a>",
               "minLength": 8
-            },
-            "name": {
-              "title": "Application Name",
-              "type": "string",
-              "placeholder": "Fortnite (shown in Home app)",
-              "required": true,
-              "minLength": 2
             }
           }
         }
