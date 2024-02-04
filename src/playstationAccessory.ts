@@ -42,9 +42,7 @@ export class PlaystationAccessory {
         private deviceInformation: IDiscoveredDevice
     ) {
         const uuid = this.api.hap.uuid.generate(deviceInformation.id);
-        const overrides = this.getOverrides();
-
-        const deviceName = overrides?.name || deviceInformation.name;
+        const deviceName = deviceInformation.name;
 
         this.accessory = new this.api.platformAccessory<{
             deviceInformation: IDiscoveredDevice;
@@ -103,13 +101,6 @@ export class PlaystationAccessory {
         this.api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
     }
 
-    private getOverrides() {
-        const overrides = this.platform.config.overrides || [];
-        return overrides.find(
-            (override) => override.deviceId === this.deviceInformation.id
-        );
-    }
-
     private setTitle() {
         const PSNAWP = this.platform.config.PSNAWP || "";
         const account_id = this.platform.config.account_id || [];
@@ -119,7 +110,7 @@ export class PlaystationAccessory {
             account_ids.push(title.id);
         });
 
-        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-realtime-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-game-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
         get_title.stdout.on('data', data => {
             title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
             this.addTitle("PSAXXXX", title_game, 0);
@@ -162,7 +153,7 @@ export class PlaystationAccessory {
         });
 
         setInterval(() => {
-            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-realtime-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-game-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
             get_title.stdout.on('data', data => {
                 title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
                 titleInputSource
