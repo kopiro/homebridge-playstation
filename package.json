@@ -1,12 +1,12 @@
 {
   "displayName": "Homebridge Playstation",
-  "name": "homebridge-playstation",
-  "version": "1.6.0",
+  "name": "homebridge-playstation-title",
+  "version": "1.0.0",
   "description": "Playstation integration for Homebridge",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/kopiro/homebridge-playstation.git"
+    "url": "git://github.com/NikDevx/homebridge-playstation.git"
   },
   "files": [
     "dist",
@@ -14,7 +14,7 @@
     "config.schema.json"
   ],
   "bugs": {
-    "url": "https://github.com/kopiro/homebridge-playstation/issues"
+    "url": "https://github.com/NikDevx/homebridge-playstation/issues"
   },
   "author": {
     "name": "Flavio De Stefano",
@@ -33,7 +33,7 @@
   "scripts": {
     "lint": "eslint src/**.ts --max-warnings=0",
     "watch": "npm run build && npm link && nodemon",
-    "build": "rimraf ./dist && tsc",
+    "build": "rimraf ./dist && tsc && cp ./src/title_game.py ./dist/",
     "prepublishOnly": "npm run lint && npm run build"
   },
   "bin": {
@@ -43,8 +43,10 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    "playactor": "^0.4.1",
-    "node-sessionstorage": "^1.0.0"
+    "homebridge-playstation": "^1.6.0",
+    "homebridge-playstation-title": "^1.6.2",
+    "node-sessionstorage": "^1.0.0",
+    "playactor": "^0.4.1"
   },
   "devDependencies": {
     "@types/node": "^20.4.2",
@@ -53,10 +55,10 @@
     "eslint": "^8.45.0",
     "homebridge": "^1.7.0",
     "homebridge-config-ui-x": "^4.52.3",
+    "node-sessionstorage": "^1.0.0",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6",
-    "node-sessionstorage": "^1.0.0"
+    "typescript": "^5.1.6"
   }
 }

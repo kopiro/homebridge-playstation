@@ -19,7 +19,7 @@ def user_status():
         user_name = psnawp.user(account_id=user).account_id
         user_info = psnawp.user(account_id=user).get_presence()
         if user_info["basicPresence"]["primaryPlatformInfo"]["onlineStatus"] == "online" and user == user_name:
-            # game_id = user_info["basicPresence"]["gameTitleInfoList"][0]["npTitleId"]
+            game_id = user_info["basicPresence"]["gameTitleInfoList"][0]["npTitleId"]
             game_title = user_info["basicPresence"]["gameTitleInfoList"][0]["titleName"]
 
     return game_title

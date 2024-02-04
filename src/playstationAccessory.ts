@@ -14,9 +14,8 @@ import {
 import {PlaystationPlatform} from "./playstationPlatform";
 import {PLUGIN_NAME} from "./settings";
 import {spawn} from 'child_process';
-import localStorage from 'node-sessionstorage';
 
-let title_game = "";
+let title_game;
 
 export class PlaystationAccessory {
     private readonly accessory: PlatformAccessory;
@@ -90,7 +89,7 @@ export class PlaystationAccessory {
 
         this.tvService.setCharacteristic(this.Characteristic.ActiveIdentifier, 0);
 
-        this.setTitleList();
+        this.setTitle();
 
         this.tvService
             .getCharacteristic(this.Characteristic.ActiveIdentifier)
@@ -111,51 +110,31 @@ export class PlaystationAccessory {
         );
     }
 
-    private setTitleList() {
-        try {
-            let polling = this.platform.config.pollInterval || 120000;
-            let PSNAWP = this.platform.config.PSNAWP || "";
-            let account_id = this.platform.config.account_id || [];
-            let account_ids = [];
-            // let self = this.addTitleToList;
+    private setTitle() {
+        const PSNAWP = this.platform.config.PSNAWP || "";
+        const account_id = this.platform.config.account_id || [];
+        const account_ids: string[] = [];
 
-            account_id.forEach((title) => {
-                account_ids.push(title.id);
-            });
+        account_id.forEach((title) => {
+            account_ids.push(title.id);
+        });
 
-            setInterval(function () {
-                const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
-                get_title.stdout.on('data', data => {
-                    // title_game = "";
-                    // title_game = (data.toString().replace(/(\r\n|\n|\r)/gm, ""));
-                    localStorage.setItem('title', data.toString().replace(/(\r\n|\n|\r)/gm, ""));
-                    // self("CUSAXXXXXX", localStorage.getItem('title'), 0);
-                    console.log(title_game);
-                });
-            }, polling);
-
-            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
-            get_title.stdout.on('data', data => {
-                // title_game = "";
-                // title_game = (data.toString().replace(/(\r\n|\n|\r)/gm, ""));
-                localStorage.setItem('title', data.toString().replace(/(\r\n|\n|\r)/gm, ""));
-                console.log(title_game);
-            });
-            this.addTitleToList("CUSAXXXXXX", localStorage.getItem('title'), 0);
-        } catch (err) {
-            this.log.error('[playstation] Unable to load game title');
-        }
+        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+        get_title.stdout.on('data', data => {
+            title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
+            this.addTitle("PSAXXXX", title_game, 0);
+        });
     }
 
-    private addTitleToList(titleId: string, titleName: string, index: number) {
-        let titleInputSource = new this.Service.InputSource(titleName, titleId);
+    private addTitle(titleId: string, titleName: string, index: number) {
+        const titleInputSource = new this.Service.InputSource(titleName, titleId);
         titleInputSource
             .setCharacteristic(this.Characteristic.Identifier, index)
             .setCharacteristic(this.Characteristic.Name, titleName)
             .setCharacteristic(this.Characteristic.ConfiguredName, titleName)
             .setCharacteristic(
                 this.Characteristic.IsConfigured,
-                this.Characteristic.IsConfigured.CONFIGURED
+                this.Characteristic.IsConfigured.NOT_CONFIGURED
             )
             .setCharacteristic(
                 this.Characteristic.InputSourceType,
@@ -163,13 +142,47 @@ export class PlaystationAccessory {
             )
             .setCharacteristic(
                 this.Characteristic.CurrentVisibilityState,
-                this.Characteristic.CurrentVisibilityState.SHOWN
+                this.Characteristic.CurrentVisibilityState.HIDDEN
             );
 
-        // this.accessory.addService(titleInputSource);
+        this.accessory.addService(titleInputSource);
         this.tvService.addLinkedService(titleInputSource);
-
         this.titleIDs.push(titleId);
+        this.UpdateTitle(titleInputSource);
+    }
+
+    private UpdateTitle(titleInputSource) {
+        const PSNAWP = this.platform.config.PSNAWP || "";
+        const account_id = this.platform.config.account_id || [];
+        const polling = this.platform.config.pollInterval || 120000;
+        const account_ids: string[] = [];
+
+        account_id.forEach((title) => {
+            account_ids.push(title.id);
+        });
+
+        setInterval(() => {
+            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+            get_title.stdout.on('data', data => {
+                title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
+                titleInputSource
+                    .setCharacteristic(this.Characteristic.Identifier, 0)
+                    .setCharacteristic(this.Characteristic.Name, title_game)
+                    .setCharacteristic(this.Characteristic.ConfiguredName, title_game)
+                    .setCharacteristic(
+                        this.Characteristic.IsConfigured,
+                        this.Characteristic.IsConfigured.NOT_CONFIGURED
+                    )
+                    .setCharacteristic(
+                        this.Characteristic.InputSourceType,
+                        this.Characteristic.InputSourceType.APPLICATION
+                    )
+                    .setCharacteristic(
+                        this.Characteristic.CurrentVisibilityState,
+                        this.Characteristic.CurrentVisibilityState.HIDDEN
+                    );
+            });
+        }, polling);
     }
 
     private async discoverDevice() {
