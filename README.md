@@ -6,7 +6,7 @@ _Hey Siri, turn on Playstation_ finally possible!
 
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 
-![IMG PS5 Title](PS5 title change.gif)
+![IMG PS5 Title](https://github.com/NikDevx/homebridge-playstation/blob/master/PS5%20title%20change.gif?raw=true)
 
 This integration exposes a Switch service that can be used to switch on/off your PS4/PS5, and determine its current state.
 
