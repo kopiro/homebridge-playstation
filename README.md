@@ -16,7 +16,7 @@ Most of the work is done by the amazing [playactor](https://github.com/dhleong/p
 You can install it via Homebridge UI or manually using:
 
 ```bash
-npm -g install homebridge-playstation
+npm -g homebridge-playstation-game-title
 pip3 install PSNAWP
 ```
 

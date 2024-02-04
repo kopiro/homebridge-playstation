@@ -1,12 +1,12 @@
 {
   "displayName": "Homebridge Playstation",
-  "name": "homebridge-playstation-realtime-title",
+  "name": "homebridge-playstation-game-title",
   "version": "1.0.0",
   "description": "Playstation integration for Homebridge",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/NikDevx/homebridge-playstation.git"
+    "url": "git://github.com/NikDevx/homebridge-playstation-game-title.git"
   },
   "files": [
     "dist",
@@ -14,7 +14,7 @@
     "config.schema.json"
   ],
   "bugs": {
-    "url": "https://github.com/NikDevx/homebridge-playstation/issues"
+    "url": "https://github.com/NikDevx/homebridge-playstation-game-title/issues"
   },
   "author": {
     "name": "Flavio De Stefano",
@@ -43,9 +43,6 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    "homebridge-playstation": "^1.6.0",
-    "homebridge-playstation-realtime-title": "^1.0.0",
-    "node-sessionstorage": "^1.0.0",
     "playactor": "^0.4.1"
   },
   "devDependencies": {
@@ -55,7 +52,6 @@
     "eslint": "^8.45.0",
     "homebridge": "^1.7.0",
     "homebridge-config-ui-x": "^4.52.3",
-    "node-sessionstorage": "^1.0.0",
     "nodemon": "^3.0.1",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
