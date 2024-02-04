@@ -1,6 +1,6 @@
 {
   "displayName": "Homebridge Playstation",
-  "name": "homebridge-playstation-title",
+  "name": "homebridge-playstation-realtime-title",
   "version": "1.0.0",
   "description": "Playstation integration for Homebridge",
   "license": "Apache-2.0",
