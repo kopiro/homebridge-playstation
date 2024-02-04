@@ -119,7 +119,7 @@ export class PlaystationAccessory {
             account_ids.push(title.id);
         });
 
-        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-realtime-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
         get_title.stdout.on('data', data => {
             title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
             this.addTitle("PSAXXXX", title_game, 0);
@@ -162,7 +162,7 @@ export class PlaystationAccessory {
         });
 
         setInterval(() => {
-            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
+            const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-realtime-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
             get_title.stdout.on('data', data => {
                 title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
                 titleInputSource
