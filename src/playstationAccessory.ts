@@ -102,19 +102,7 @@ export class PlaystationAccessory {
     }
 
     private setTitle() {
-        const PSNAWP = this.platform.config.PSNAWP || "";
-        const account_id = this.platform.config.account_id || [];
-        const account_ids: string[] = [];
-
-        account_id.forEach((title) => {
-            account_ids.push(title.id);
-        });
-
-        const get_title = spawn('python3', ['/usr/lib/node_modules/homebridge-playstation-game-title/dist/title_game.py', PSNAWP, JSON.stringify(account_ids)]);
-        get_title.stdout.on('data', data => {
-            title_game = data.toString().replace(/(\r\n|\n|\r)/gm, "");
-            this.addTitle("PSAXXXX", title_game, 0);
-        });
+        this.addTitle("PSAXXXX", "Loading...", 0);
     }
 
     private addTitle(titleId: string, titleName: string, index: number) {
