@@ -44,7 +44,7 @@
   ],
   "dependencies": {
     "homebridge-playstation": "^1.6.0",
-    "homebridge-playstation-title": "^1.6.2",
+    "homebridge-playstation-realtime-title": "^1.0.0",
     "node-sessionstorage": "^1.0.0",
     "playactor": "^0.4.1"
   },
