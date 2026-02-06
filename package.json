@@ -1,7 +1,7 @@
 {
   "displayName": "Playstation",
   "name": "homebridge-playstation",
-  "version": "1.6.2",
+  "version": "1.7.0",
   "description": "Playstation integration for Homebridge",
   "license": "ISC",
   "repository": {
@@ -26,7 +26,7 @@
     "url": "https://www.paypal.me/kopiro"
   },
   "engines": {
-    "node": "^18.13.0 || ^20.16.0 || ^22.5.1",
+    "node": "^18.13.0 || ^20.16.0 || ^22.5.1 || ^24",
     "homebridge": "^1.8.0 || ^2.0.0-beta.0"
   },
   "main": "dist/index.js",
@@ -51,7 +51,7 @@
     "@typescript-eslint/parser": "^8.4.0",
     "dotenv": "^16.4.5",
     "eslint": "^9.10.0",
-    "homebridge": "^1.8.4",
+    "homebridge": "^2.0.0-beta.0",
     "homebridge-config-ui-x": "^4.58.0",
     "nodemon": "^3.1.4",
     "rimraf": "^6.0.1",
