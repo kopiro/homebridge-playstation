@@ -113,9 +113,14 @@ export class PlaystationAccessory {
   }
 
   private setTitleList() {
-    // if nothing selected yet, add a placeholder
-    this.addTitleToList("CUSAXXXXXX", "---", 0);
     const titleList = this.platform.config.apps || [];
+
+    if (titleList.length === 0) {
+      return;
+    }
+
+    // if nothing selected yet, add a placeholder
+    this.addTitleToList("CUSAXXXXXX", "None", 0);
     titleList.forEach((title, index) => {
       this.log.debug(`Adding input for title: `, title);
       this.addTitleToList(title.id, title.name, index + 1);
