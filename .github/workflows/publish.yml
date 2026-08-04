@@ -1,23 +1,56 @@
-name: Publish Package to npmjs
+name: Release package
 
-permissions:
-  id-token: write  # Required for OIDC
-  contents: read
-  
 on:
   push:
-    tags:
-      - 'v*'
-      
+    branches:
+      - master
+
+# A release writes its version commit and tag back to master. Keeping one release
+# in flight prevents two closely spaced merges from choosing the same npm version.
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
-  build:
+  release:
+    # Commits pushed with GITHUB_TOKEN do not normally start another workflow,
+    # but the explicit guard protects the invariant if GitHub changes that rule.
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
-      - run: npm run build --if-present
-      - run: npm publish
+
+      - name: Create patch version
+        id: version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # The release commit remains in the repository so package.json, the npm
+          # artifact, the Git tag, and the GitHub Release always describe one version.
+          npm version patch -m "chore: release v%s [skip ci]"
+          echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Push version commit and tag
+        run: git push origin HEAD:master --follow-tags
+
+      - name: Publish to npm
+        run: npm publish
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes --title "$RELEASE_TAG"
