@@ -6,6 +6,12 @@
   "schema": {
     "type": "object",
     "properties": {
+      "deviceIp": {
+        "title": "Console IPv4 address",
+        "type": "string",
+        "format": "ipv4",
+        "description": "Use directed discovery when Homebridge and the console are on different networks."
+      },
       "pollInterval": {
         "title": "Poll Interval",
         "type": "integer",

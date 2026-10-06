@@ -34,6 +34,7 @@
     "lint": "eslint src/**.ts --max-warnings=0",
     "watch": "npm run build && npm link && nodemon",
     "build": "rimraf ./dist && tsc",
+    "test": "node --test test/*.test.cjs",
     "prepublishOnly": "npm run lint && npm run build"
   },
   "bin": {

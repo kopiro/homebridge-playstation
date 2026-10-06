@@ -155,7 +155,9 @@ export class PlaystationAccessory {
   private async discoverDevice() {
     // Wrapper to get the device and making sure you always call .discover() before using the device,
     // otherwise you will get an "Error: Unexpected discovery message"
-    const device = Device.withId(this.deviceInformation.id);
+    const device = Device.withId(this.deviceInformation.id, {
+      deviceIp: this.platform.config.deviceIp,
+    });
     this.deviceInformation = await device.discover();
     return device;
   }
