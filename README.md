@@ -30,6 +30,19 @@ npm -g install homebridge-playstation
 homebridge-playstation-login
 ```
 
+If the PlayStation is on another subnet and broadcast discovery cannot reach it,
+use its IPv4 address for both authorization and Homebridge discovery:
+
+```bash
+homebridge-playstation-login --ip 192.0.2.10
+```
+
+Set `deviceIp` to the same address in this plugin's Homebridge configuration.
+Give the console a stable address, for example with a DHCP reservation. Leave
+`deviceIp` unset when broadcast discovery works or when discovering multiple
+consoles on the local network. Directed discovery also requires the network to
+allow the PlayStation's Remote Play traffic.
+
 You can do this by using the Homebridge UI terminal or an SSH session and manually changing user with `su homebridge`
 
 - Open the authorization link provided, authenticate it using your PSN account, and copy the URL when the page shows "redirect" in the terminal.
