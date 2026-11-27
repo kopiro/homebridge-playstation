@@ -9,9 +9,11 @@ import {
 
 import { PlaystationAccessory } from "./playstationAccessory";
 import { Discovery } from "playactor/dist/discovery";
+import { isIP } from "net";
 
 export interface PlaystationPlatformConfig extends PlatformConfig {
   pollInterval?: number;
+  deviceIp?: string;
   overrides?: Array<{ deviceId: string; name?: string }>;
   apps?: Array<{ id: string; name: string }>;
 }
@@ -29,6 +31,10 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
     public readonly api: API
   ) {
     this.log.debug("Config", config);
+    if (this.config.deviceIp && isIP(this.config.deviceIp) !== 4) {
+      this.log.error("deviceIp must be an IPv4 address");
+      return;
+    }
     this.log.info("Discovering devices...");
 
     this.discoverDevices().catch((err) => {
@@ -37,7 +43,7 @@ export class PlaystationPlatform implements IndependentPlatformPlugin {
   }
 
   async discoverDevices() {
-    const discovery = new Discovery();
+    const discovery = new Discovery({ deviceIp: this.config.deviceIp });
     const devices = discovery.discover();
 
     for await (const deviceInformation of devices) {

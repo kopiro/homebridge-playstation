@@ -2,13 +2,15 @@
 
 import { DeviceOptions } from "playactor/dist/cli/options";
 import { Discovery } from "playactor/dist/discovery";
+import { isIP } from "net";
 import readline from "readline";
 
-const connect = async (deviceId) => {
+const connect = async (deviceId, deviceIp?: string) => {
   try {
     const opt = new DeviceOptions();
     opt.dontAutoOpenUrls = true;
     opt.deviceHostId = deviceId;
+    opt.deviceIp = deviceIp;
 
     console.log(`Connecting to <${deviceId}>...`);
 
@@ -42,7 +44,12 @@ const confirm = (deviceName) => {
 };
 
 const discover = async () => {
-  const discovery = new Discovery();
+  const args = process.argv.slice(2);
+  if (args.length && (args.length !== 2 || args[0] !== "--ip" || isIP(args[1]) !== 4)) {
+    throw new Error("Usage: homebridge-playstation-login [--ip IPv4_ADDRESS]");
+  }
+  const deviceIp = args[1];
+  const discovery = new Discovery({ deviceIp });
   const devices = discovery.discover();
 
   let success = false;
@@ -51,7 +58,7 @@ const discover = async () => {
     const confirmed = await confirm(device.name);
     if (confirmed) {
       // track if there were any successful connections
-      success = (await connect(device.id)) || success;
+      success = (await connect(device.id, deviceIp)) || success;
     }
 
     console.log("\nDiscovering next device...");
@@ -68,4 +75,7 @@ discover()
       console.error("\nDid not authenticate to any consoles.");
     }
   })
-  .catch((err) => console.error(err));
+  .catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exitCode = 1;
+  });

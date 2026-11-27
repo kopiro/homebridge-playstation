@@ -26,3 +26,6 @@ jobs:
           
       - name: Build the project
         run: npm run build
+
+      - name: Test directed discovery
+        run: npm test
