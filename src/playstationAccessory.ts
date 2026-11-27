@@ -6,11 +6,13 @@ import {
   PlatformAccessory,
   Service,
 } from "homebridge";
+import { IDeviceConnection } from "playactor/dist/connection/model";
 import { Device } from "playactor/dist/device";
 import {
   DeviceStatus,
   IDiscoveredDevice,
 } from "playactor/dist/discovery/model";
+import { RemoteOperation } from "playactor/dist/socket/remote";
 
 import { PlaystationPlatform } from "./playstationPlatform";
 import { PLUGIN_NAME } from "./settings";
@@ -32,6 +34,12 @@ export class PlaystationAccessory {
 
   private lockTimeout: NodeJS.Timeout | undefined;
   private readonly kLockTimeout = 20_000;
+
+  // opening a connection takes seconds, so key presses reuse one until it idles
+  private remoteConnection: IDeviceConnection | undefined;
+  private remoteIdleTimer: NodeJS.Timeout | undefined;
+  private remoteQueue: Promise<void> = Promise.resolve();
+  private readonly kRemoteIdleTimeout = 30_000;
 
   // list of titles that can be started through Home app
   private titleIDs: unknown[] = [];
@@ -82,12 +90,9 @@ export class PlaystationAccessory {
       .onSet(this.setOn.bind(this))
       .onGet(this.getOn.bind(this));
 
-    // These characteristics are required but not implemented yet
     this.tvService
       .getCharacteristic(this.Characteristic.RemoteKey)
-      .onSet((newValue: CharacteristicValue) => {
-        this.log.debug(`Set RemoteKey is not implemented yet`, newValue);
-      });
+      .onSet(this.setRemoteKey.bind(this));
 
     this.tvService.setCharacteristic(this.Characteristic.ActiveIdentifier, 0);
 
@@ -240,6 +245,7 @@ export class PlaystationAccessory {
           return;
         }
 
+        await this.closeRemoteConnection();
         this.log.debug(`Opening connection...`);
         const connection = await device.openConnection();
 
@@ -301,6 +307,7 @@ export class PlaystationAccessory {
         }
 
         this.log.debug(`Starting title ${requestedTitle} ...`);
+        await this.closeRemoteConnection();
         const connection = await device.openConnection();
 
         await connection.startTitleId?.(requestedTitle);
@@ -316,5 +323,91 @@ export class PlaystationAccessory {
       .finally(() => {
         this.releaseLocks();
       });
+  }
+
+  private remoteOperationFor(key: CharacteristicValue) {
+    const { RemoteKey } = this.Characteristic;
+    switch (key) {
+      case RemoteKey.ARROW_UP:
+        return RemoteOperation.Up;
+      case RemoteKey.ARROW_DOWN:
+        return RemoteOperation.Down;
+      case RemoteKey.ARROW_LEFT:
+        return RemoteOperation.Left;
+      case RemoteKey.ARROW_RIGHT:
+        return RemoteOperation.Right;
+      case RemoteKey.SELECT:
+        return RemoteOperation.Enter;
+      case RemoteKey.BACK:
+        return RemoteOperation.Back;
+      case RemoteKey.EXIT:
+        return RemoteOperation.PS;
+      case RemoteKey.PLAY_PAUSE:
+      case RemoteKey.INFORMATION:
+        return RemoteOperation.Option;
+      default:
+        return undefined;
+    }
+  }
+
+  private setRemoteKey(value: CharacteristicValue) {
+    const key = this.remoteOperationFor(value);
+    if (key === undefined) {
+      this.log.debug(`RemoteKey not supported:`, value);
+      return;
+    }
+
+    if (this.lockSetOn) {
+      this.log.debug(`Lock is active, ignoring RemoteKey`, value);
+      return;
+    }
+
+    // chained so key presses reach the device in the order they were made
+    this.remoteQueue = this.remoteQueue
+      .then(() => this.sendRemoteKey(key))
+      .catch(async (err) => {
+        this.log.error((err as Error).message);
+        await this.closeRemoteConnection();
+      });
+  }
+
+  private async sendRemoteKey(key: RemoteOperation) {
+    if (!this.remoteConnection?.isConnected) {
+      const device = await this.discoverDevice();
+      if (this.deviceInformation.status !== DeviceStatus.AWAKE) {
+        this.log.debug(`Device is not awake, ignoring RemoteKey`);
+        return;
+      }
+      this.log.debug(`Opening connection for remote control...`);
+      this.remoteConnection = await device.openConnection();
+    }
+
+    if (!this.remoteConnection.sendKeys) {
+      this.log.info(`This device does not support remote control keys`);
+      return;
+    }
+
+    await this.remoteConnection.sendKeys([{ key }]);
+
+    if (this.remoteIdleTimer) {
+      clearTimeout(this.remoteIdleTimer);
+    }
+    this.remoteIdleTimer = setTimeout(
+      () => void this.closeRemoteConnection(),
+      this.kRemoteIdleTimeout
+    );
+  }
+
+  private async closeRemoteConnection() {
+    if (this.remoteIdleTimer) {
+      clearTimeout(this.remoteIdleTimer);
+      this.remoteIdleTimer = undefined;
+    }
+    const connection = this.remoteConnection;
+    this.remoteConnection = undefined;
+    if (connection?.isConnected) {
+      this.log.debug(`Closing remote control connection...`);
+      await connection.close().catch(() => undefined);
+    }
   }
 }

@@ -10,6 +10,8 @@ _Hey Siri, turn on Playstation_ finally possible!
 
 This integration exposes a Switch service that can be used to switch on/off your PS4/PS5, and determine its current state.
 
+On a PS4, the arrows, select and back buttons of the iOS Remote app (Control Center) navigate the console while it is on.
+
 Most of the work is done by the amazing [playactor](https://github.com/dhleong/playactor) library, which this project depends on.
 
 ## Installation
